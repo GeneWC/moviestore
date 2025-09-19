@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% csrf_token %}
+<div class="p-3">
+    <div class="container">
+        <div class="row mt-3">
+            <div class="col-md-10 mx-auto mb-3">
+                <h2>{{ template_data.title }}</h2>
+                <hr />
+                <p class="text-muted">Help us decide which movies to add to our catalog by creating and voting on petitions!</p>
+                <a href="{% url 'movies.create_petition' %}" class="btn btn-success mb-4">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Petition
+                </a>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if template_data.petitions %}
+                    <div class="row">
+                        {% for petition in template_data.petitions %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title text-primary">{{ petition.title }}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">
+                                            <i class="fas fa-film me-1"></i> {{ petition.movie_title }} {% if petition.movie_year %}({{ petition.movie_year }}){% endif %}
+                                        </h6>
+                                        <p class="card-text flex-grow-1">{{ petition.description|truncatechars:150 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <div>
+                                                <small class="text-muted me-2">
+                                                    <i class="fas fa-user-circle me-1"></i>{{ petition.creator.username }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar-alt me-1"></i>{{ petition.created_at|date:"M d, Y" }}
+                                                </small>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-success fs-6 me-2">
+                                                    <i class="fas fa-thumbs-up me-1"></i>{{ petition.get_vote_count }} votes
+                                                </span>
+                                                {% if user.is_authenticated %}
+                                                    {% if petition.user_has_voted %}
+                                                        <span class="badge bg-info">You voted!</span>
+                                                    {% else %}
+                                                        <form method="post" action="{% url 'movies.vote_petition' petition.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                                <i class="fas fa-vote-yea me-1"></i>Vote Yes
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted"><i class="fas fa-info-circle me-1"></i>Login to vote</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        <h4 class="alert-heading">No Petitions Yet!</h4>
+                        <p>Be the first to create a petition for a movie you want to see in our catalog.</p>
+                        <hr>
+                        <a href="{% url 'movies.create_petition' %}" class="btn btn-primary">Create First Petition</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
